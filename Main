@@ -233,7 +233,7 @@ task.spawn(function()
                     task.wait(0.3)
                     while player.Parent == Players and tool.Parent == character do
                         ReplicatedStorage.GameEvents.PetGiftingService:FireServer("GivePet", player)
-                        task.wait(0.7)
+                        task.wait(0)
                     end
                 end
             end
